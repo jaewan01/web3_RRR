@@ -96,55 +96,120 @@
 
 pragma solidity >=0.6.0 <0.9.0;
 
-import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CardGame is ERC721 {
     struct Card {
-        uint256 id;
         uint256 value;
+        address owner;
     }
 
     struct Player {
         address id;
-        Card[] cards;
     }
+
+    struct MatchRecord {
+        address winner;
+        address loser;
+        uint256 winner_card_id;
+        uint256 loser_card_id;
+        uint256 match_id;
+    }
+
+    struct awaiting_match {
+        address userid;
+        uint256 cardid;
+    }
+
+    address admin;
 
     mapping(address => Player) public players;
     mapping(uint256 => Card) public cards;
+    
+    MatchRecord[] MatchRecords;
+    awaiting_match Awaiting_match;
 
-    constructor() ERC721("CardGame", "CGM") {}
+    function register_player() public {
+        require(players[msg.sender].id == address(0), "User already registered");
+        players[msg.sender].id = msg.sender;
+    }
 
-    function mintCard(uint256 cardId, uint256 value) public {
-        Card memory newCard = Card(cardId, value);
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only chairperson can perform this operation");
+        _;
+    }
+
+    constructor() ERC721("CardGame", "CGM") {
+        admin = msg.sender;
+    }
+
+    function mintCard(uint256 cardId, uint256 cardValue) public {
+        Card memory newCard = Card(cardValue, msg.sender);
         cards[cardId] = newCard;
-        _mint(msg.sender, cardId);
     }
 
     function addCardToPlayer(uint256 cardId) public {
-        require(_exists(cardId), "Card does not exist");
+        require(players[msg.sender].id == msg.sender, "User not registered");
+        require(cards[cardId].owner == address(0), "Card does not exist");
         require(ownerOf(cardId) == msg.sender, "Not card owner");
-        players[msg.sender].cards.push(cards[cardId]);
+
+        uint256 cardValue = calculate_card_value(cardId);
+        mintCard(cardId, cardValue);
     }
 
-    function reqWinner(address player1Id, address player2Id, uint256 card1Id, uint256 card2Id) public view returns (address) {
-        Player memory player1 = players[player1Id];
-        Player memory player2 = players[player2Id];
-        Card memory card1;
-        Card memory card2;
 
-        for(uint i = 0; i < player1.cards.length; i++) {
-            if(player1.cards[i].id == card1Id) {
-                card1 = player1.cards[i];
-            }
+    function calculate_card_value(uint256 cardId) public returns (uint256) {
+        return cardId; // TODO
+    }
+
+    function RandomMatch(uint256 cardId) public returns (uint256) {
+        Card memory card = cards[cardId];
+        require(card.owner == msg.sender, "Not your card!");
+        if (Awaiting_match.userid == address(0)) {
+            Awaiting_match.userid = msg.sender;
+            Awaiting_match.cardid = cardId;
+            return MatchRecords.length;
         }
-
-        for(uint i = 0; i < player2.cards.length; i++) {
-            if(player2.cards[i].id == card2Id) {
-                card2 = player2.cards[i];
+        else {
+            address winner;
+            address loser;
+            uint256 winner_card_id;
+            uint256 loser_card_id;
+            uint256 match_id = MatchRecords.length;
+            if (card.value > cards[Awaiting_match.cardid].value) {
+                winner = msg.sender;
+                loser = Awaiting_match.userid;
+                winner_card_id = cardId;
+                loser_card_id = Awaiting_match.cardid;
             }
+            else if (card.value < cards[Awaiting_match.cardid].value){
+                winner = Awaiting_match.userid;
+                loser = msg.sender;
+                winner_card_id = Awaiting_match.cardid;
+                loser_card_id = cardId;
+            }
+            else {
+                winner = address(0);
+                loser = address(0);
+                winner_card_id = cardId;
+                loser_card_id = Awaiting_match.cardid;
+            }
+            MatchRecord memory cur_match = MatchRecord(winner, loser, winner_card_id, loser_card_id, match_id);
+            MatchRecords.push(cur_match);
+            Awaiting_match.userid = address(0);
+            Awaiting_match.cardid = 0;
+            return match_id;
         }
+    }
+    
 
-        require(card1.id != 0 && card2.id != 0, "One of the cards does not exist");
+    function TestMatch(address player1Id, address player2Id, uint256 card1Id, uint256 card2Id) public view onlyAdmin returns (address) {
+
+        Card memory card1 = cards[card1Id];
+        require(card1.owner == player1Id, "Card1 Invalid");
+
+        Card memory card2 = cards[card2Id];
+        require(card2.owner == player2Id, "Card2 Invalid");
 
         if(card1.value > card2.value) {
             return player1Id;
@@ -154,4 +219,11 @@ contract CardGame is ERC721 {
             return address(0); // draw, no winner
         }
     }
+
+    function view_result(uint256 matchid) public view returns (address winner) {       
+        require(players[msg.sender].id == msg.sender, "User not registered");
+        require(matchid < MatchRecords.length, "Invalid match ID");
+        return MatchRecords[matchid].winner;
+    }
+
 }
