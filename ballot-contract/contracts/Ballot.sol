@@ -1,6 +1,6 @@
 pragma solidity >=0.6.0 <0.9.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CardGame is ERC721 {
     struct Card {
@@ -47,9 +47,11 @@ contract CardGame is ERC721 {
         admin = msg.sender;
     }
 
-    function mintCard(uint256 cardId, uint256 value) public {
-        Card memory newCard = Card(cardId, value);
+    function mintCard(uint256 cardId, uint256 cardValue) public {
+        require(cards[cardId].owner == address(0), "Card already exists");
+        Card memory newCard = Card(cardValue, msg.sender);
         cards[cardId] = newCard;
+        _mint(msg.sender, cardId);
     }
     
     function addCardToPlayer(uint256 cardId) public {
