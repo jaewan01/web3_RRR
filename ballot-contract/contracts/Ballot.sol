@@ -10,6 +10,7 @@ contract CardGame is ERC721 {
 
     struct Player {
         address id;
+        mapping(uint256 => bool) cardsOwned;
     }
 
     struct MatchRecord {
@@ -47,20 +48,23 @@ contract CardGame is ERC721 {
         admin = msg.sender;
     }
 
-    function mintCard(uint256 cardId, uint256 cardValue) public {
+    function assignValue(uint256 cardId) internal view returns (uint256) {
+        uint256 randomValue = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, cardId))) % 100 + 1;
+        return randomValue;
+    }
+
+    function mintCard(uint256 cardId) public {
         require(cards[cardId].owner == address(0), "Card already exists");
+        uint256 cardValue = assignValue(cardId);
         Card memory newCard = Card(cardValue, msg.sender);
         cards[cardId] = newCard;
         _mint(msg.sender, cardId);
     }
-    
+
     function addCardToPlayer(uint256 cardId) public {
         require(players[msg.sender].id == msg.sender, "User not registered");
-        require(cards[cardId].owner == address(0), "Card does not exist");
-        require(ownerOf(cardId) == msg.sender, "Not card owner");
-
-        uint256 cardValue = calculate_card_value(cardId);
-        mintCard(cardId, cardValue);
+        require(cards[cardId].owner == msg.sender, "Not card owner");
+        players[msg.sender].cardsOwned[cardId] = true;
     }
 
 
