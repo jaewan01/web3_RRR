@@ -52,12 +52,15 @@ App = {
   },
 
   initContract: function() {
-    $.getJSON('Ballot.json', function(data) {
+    $.getJSON('CardGame.json', function(data) {
       // Get the necessary contract artifact file and instantiate it with truffle-contract
-      var voteArtifact = data;
-      App.contracts.vote = TruffleContract(voteArtifact);
+      
+      
+      // TODO 수정해야 할 곳
+      var cardgameArtifact = data;
+      App.contracts.cardgame = TruffleContract(cardgameArtifact);
       // Set the provider for our contract
-      App.contracts.vote.setProvider(App.web3Provider);
+      App.contracts.cardgame.setProvider(App.web3Provider);
 
       web3.eth.defaultAccount = web3.eth.coinbase;
       App.currentAccount = web3.eth.coinbase;
@@ -71,14 +74,15 @@ App = {
   },
 
   bindEvents: function() {
-    $(document).on('click', '.btn-vote', App.handleVote);
-    $(document).on('click', '#change-phase', App.handlePhase);
-    $(document).on('click', '#win-count', App.handleWinner);
+    // $(document).on('click', '.btn-vote', App.handleVote);
+    $(document).on('click', '#btn-mint', function(){ var cardid = $('#enter_cardid').val(); App.handleMintCard(cardid);});
+    // $(document).on('click', '#change-phase', App.handlePhase);
+    $(document).on('click', '#win-count', App.handleWinner); //lookup winner 로 사용해야 할 듯
     $(document).on('click', '#register', function(){ var ad = $('#enter_address').val(); App.handleRegister(ad); });
   },
 
   getCurrentPhase: function() {
-    App.contracts.vote.deployed().then(function(instance) {
+    App.contracts.cardgame.deployed().then(function(instance) {
       return instance.currentPhase();
     }).then(function(result) {
       App.currentPhase = result;
@@ -91,7 +95,7 @@ App = {
   },
 
   getChairperson : function(){
-    App.contracts.vote.deployed().then(function(instance) {
+    App.contracts.cardgame.deployed().then(function(instance) {
       return instance;
     }).then(function(result) {
       App.chairPerson = result.constructor.currentProvider.selectedAddress.toString();
@@ -106,39 +110,22 @@ App = {
     })
   },
 
-  handlePhase: function (event) {
-    App.contracts.vote.deployed().then(function (instance) {
-      return instance.advancePhase();
-    })
-      .then(function (result) {
-        console.log(result);
-        if (result) {
-          if (parseInt(result.receipt.status) == 1) {
-            if (result.logs.length > 0) {
-              App.showNotification(result.logs[0].event);
-            }
-            else {
-              App.showNotification("VoteInit");
-            }
-            App.contracts.vote.deployed().then(function(latestInstance) {
-              return latestInstance.currentPhase();
-            }).then(function(result) {
-              console.log("This is also working, new phase updated")
-              App.currentPhase = result;
-            })
-            return;
-          }
-          else {
-            alert("Error1 in changing to next Event");
-          }
-        }
-        else {
-          alert("Error2 in changing to next Event");
-        }
-      })
-      .catch(function (err) {
-        alert("Error3 in changing to next Event: " + err);
-      });
+  handleMintCard: function (cardid) {
+    var cardgameInstance;
+    App.contracts.cardgame.deployed().then(function(instance) {
+      cardgameInstance = instance;
+      // card mint 하게 만들었음
+      return cardgameInstance.handleMintCard(cardid);
+    }).then(function(result, err){
+        if(result){
+            if(parseInt(result.receipt.status) == 1)
+            alert(addr + " minting done successfully")
+            else
+            alert(addr + " minting not done successfully due to revert")
+        } else {
+            alert(addr + " minting failed")
+        }   
+    });
   },
 
   //Function to show the notification of voting phases
@@ -149,9 +136,10 @@ App = {
 
   handleRegister: function(addr){
     var voteInstance;
-    App.contracts.vote.deployed().then(function(instance) {
+    App.contracts.cardgame.deployed().then(function(instance) {
       voteInstance = instance;
-      return voteInstance.register(addr);
+      // register 대신 register player 넣었음
+      return voteInstance.register_player(addr);
     }).then(function(result, err){
         if(result){
             if(parseInt(result.receipt.status) == 1)
@@ -164,36 +152,10 @@ App = {
     });
 },
 
-  handleVote: function(event) {
-    event.preventDefault();
-    var proposalId = parseInt($(event.target).data('id'));
-    var voteInstance;
-
-    web3.eth.getAccounts(function(error, accounts) {
-      var account = accounts[0];
-
-      App.contracts.vote.deployed().then(function(instance) {
-        voteInstance = instance;
-
-        return voteInstance.vote(proposalId, {from: account});
-      }).then(function(result, err){
-            if(result){
-              console.log(result.receipt.status);
-              if(parseInt(result.receipt.status) == 1)
-                alert(account + " voting done successfully")
-              else
-                alert(account + " voting not done successfully due to revert")
-            } else {
-                alert(account + " voting failed")
-            }   
-        });
-    });
-  },
-
   handleWinner : function() {
     console.log("To get winner");
     var voteInstance;
-    App.contracts.vote.deployed().then(function(instance) {
+    App.contracts.cardgame.deployed().then(function(instance) {
       voteInstance = instance;
       return voteInstance.reqWinner();
     }).then(function(res){
