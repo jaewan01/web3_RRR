@@ -40,7 +40,7 @@ contract CardGame is ERC721 {
     }
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Only chairperson can perform this operation");
+        require(msg.sender == admin, "Only admin can perform this operation");
         _;
     }
 

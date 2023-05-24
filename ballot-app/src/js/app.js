@@ -3,7 +3,7 @@ App = {
   contracts: {},
   names: new Array(),
   url: 'http://127.0.0.1:7545',
-  chairPerson:null,
+  admin:null,
   currentAccount:null,
 
   eventPhases: {
@@ -21,19 +21,6 @@ App = {
   },
 
   init: function() {
-    $.getJSON('../proposals.json', function(data) {
-      var proposalsRow = $('#proposalsRow');
-      var proposalTemplate = $('#proposalTemplate');
-
-      for (i = 0; i < data.length; i ++) {
-        proposalTemplate.find('.panel-title').text(data[i].name);
-        proposalTemplate.find('img').attr('src', data[i].picture);
-        proposalTemplate.find('.btn-vote').attr('data-id', data[i].id);
-
-        proposalsRow.append(proposalTemplate.html());
-        App.names.push(data[i].name);
-      }
-    });
     return App.initWeb3();
   },
 
@@ -66,35 +53,19 @@ App = {
       App.currentAccount = web3.eth.coinbase;
       jQuery('#current_account').text(App.currentAccount);
   
-      App.getCurrentPhase();
-      App.getChairperson();
+      App.getAdmin();
   
       return App.bindEvents();
     });
   },
 
   bindEvents: function() {
-    // $(document).on('click', '.btn-vote', App.handleVote);
-    $(document).on('click', '#btn-mint', function(){ var cardid = $('#enter_cardid').val(); App.handleMintCard(cardid);});
-    // $(document).on('click', '#change-phase', App.handlePhase);
-    $(document).on('click', '#win-count', App.handleWinner); //lookup winner 로 사용해야 할 듯
+    $(document).on('click', '#mintcard', function(){ var cardid = $('#enter_cardid').val(); App.handleMintCard(cardid);});
+    $(document).on('click', '#view-result', function(){ var matchid = $('#enter_matchid').val(); App.handleViewResult(matchid);});
     $(document).on('click', '#register', function(){ var ad = $('#enter_address').val(); App.handleRegister(ad); });
   },
 
-  getCurrentPhase: function() {
-    App.contracts.cardgame.deployed().then(function(instance) {
-      return instance.currentPhase();
-    }).then(function(result) {
-      App.currentPhase = result;
-      var notificationText = App.votingPhases[App.currentPhase];
-      console.log(App.currentPhase);
-      console.log(notificationText);
-      $('#phase-notification-text').text(notificationText);
-      console.log("Phase set");
-    })
-  },
-
-  getChairperson : function(){
+  getAdmin : function(){
     App.contracts.cardgame.deployed().then(function(instance) {
       return instance;
     }).then(function(result) {
@@ -114,8 +85,8 @@ App = {
     var cardgameInstance;
     App.contracts.cardgame.deployed().then(function(instance) {
       cardgameInstance = instance;
-      // card mint 하게 만들었음
-      return cardgameInstance.handleMintCard(cardid);
+      // card mint 하게 만들었음 ;; 아니잖아 안선호
+      return cardgameInstance.mintCard(cardid);
     }).then(function(result, err){
         if(result){
             if(parseInt(result.receipt.status) == 1)
@@ -128,18 +99,12 @@ App = {
     });
   },
 
-  //Function to show the notification of voting phases
-  showNotification: function (phase) {
-    var notificationText = App.eventPhases[phase];
-    $('#phase-notification-text').text(notificationText.text);
-  },
-
   handleRegister: function(addr){
-    var voteInstance;
+    var cardgameInstance;
     App.contracts.cardgame.deployed().then(function(instance) {
-      voteInstance = instance;
+      cardgameInstance = instance;
       // register 대신 register player 넣었음
-      return voteInstance.register_player(addr);
+      return cardgameInstance.register_player(addr);
     }).then(function(result, err){
         if(result){
             if(parseInt(result.receipt.status) == 1)
@@ -152,19 +117,19 @@ App = {
     });
 },
 
-  handleWinner : function() {
-    console.log("To get winner");
-    var voteInstance;
+  handleViewResult: function(matchid){
+    var cardgameInstance;
     App.contracts.cardgame.deployed().then(function(instance) {
-      voteInstance = instance;
-      return voteInstance.reqWinner();
-    }).then(function(res){
+      cardgameInstance = instance;
+      return cardgameInstance.view_result(matchid);
+    }).then(function(result){
     console.log(res);
       alert(App.names[res] + "  is the winner ! :)");
     }).catch(function(err){
       console.log(err.message);
     })
-  }
+},
+
 };
 
 $(function() {
