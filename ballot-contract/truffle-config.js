@@ -13,7 +13,10 @@ module.exports = {
   networks: {
     // Local ganache
     development: {
-      host: "localhost",
+      
+      // host 는 localhost 가 아니라 127.0.0.1 로 해야하더라..
+      host: "127.0.0.1",
+      
       port: 7545,
       network_id: "*",
       gas: 4600000
