@@ -52,6 +52,9 @@ App = {
       web3.eth.defaultAccount = web3.eth.coinbase;
       App.currentAccount = web3.eth.coinbase;
       jQuery('#current_account').text(App.currentAccount);
+
+      $('#current-winner-text').text('no winner');
+      $('#match-id-text').text('no match');
   
       App.getAdmin();
   
@@ -63,6 +66,7 @@ App = {
     $(document).on('click', '#mintcard', function(){ var cardid = $('#enter_cardid').val(); App.handleMintCard(cardid);});
     $(document).on('click', '#view-result', function(){ var matchid = $('#enter_matchid').val(); App.handleViewResult(matchid);});
     $(document).on('click', '#register', function(){ var ad = $('#enter_address').val(); App.handleRegister(ad); });
+    $(document).on('click', '#random-match', function(){ var cardid = $('#enter_cardid').val(); App.handleRandomMatch(cardid); });
   },
 
   getAdmin : function(){
@@ -99,6 +103,16 @@ App = {
     });
   },
 
+  showNotificationWinner: function (phase) {
+    var notificationText = App.eventPhases[phase];
+    $('#current-winner-text').text(notificationText.text);
+  },
+
+  showNotificationMatchID: function (phase) {
+    var notificationText = App.eventPhases[phase];
+    $('#match-id-text').text(notificationText.text);
+  },
+
   handleRegister: function(addr){
     var cardgameInstance;
     App.contracts.cardgame.deployed().then(function(instance) {
@@ -122,13 +136,29 @@ App = {
     App.contracts.cardgame.deployed().then(function(instance) {
       cardgameInstance = instance;
       return cardgameInstance.view_result(matchid);
-    }).then(function(result){
-    console.log(res);
+    }).then(function(res){
+      App.showNotificationMatchID(matchid)
+      App.showNotificationWinner(res.logs[0].event)
+      console.log(res);
       alert(App.names[res] + "  is the winner ! :)");
     }).catch(function(err){
       console.log(err.message);
     })
 },
+
+  handleRandomMatch: function(cardid){
+    var cardgameInstance;
+    App.contracts.cardgame.deployed().then(function(instance) {
+      cardgameInstance = instance;
+      return cardgameInstance.RandomMatch(cardid);
+    }).then(function(res){
+      App.showNotificationMatchID(res.logs[0].event)
+      console.log(res);
+      alert("Match ID : " + App.names[res]);
+    }).catch(function(err){
+      console.log(err.message);
+    })
+  },
 
 };
 

@@ -83,16 +83,25 @@
       <br>
     </div>
 
-    
+    <div class="container">
+      <div class="row" id="address_div">
+        <div style="margin-left: 15px;margin-top: 10px;">
+          <span><b>CardID : </b></span>
+          <input type="text" style="width: 400px;" id="enter_cardid" placeholder="Enter your cardID"></input>
+          <button class="btn btn-info" type="button" id="random-match">RandomMatch</button>
+        </div>
+      </div>
+      <br>
+    </div>
 
     <div class="row" style="padding-top:20px">
       <div id="info-section" class="row" style="font-size:20px; text-align:center; display:block">
-          Current phase: <span id="phase-notification-text"></span>
+        Current winner: <span id="current-winner-text"></span>
       </div>
       <br>
-      <center>
-        <button type="submit" id="change-phase" class="btn btn-primary btn-control align-center chairperson">Move to next phase</button>&nbsp;&nbsp;
-      </center>
+      <div id="info-section2" class="row" style="font-size:20px; text-align:center; display:block">
+        Match ID: <span id="match-id-text"></span>
+      </div>
     </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
