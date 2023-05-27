@@ -72,13 +72,14 @@ contract CardGame is ERC721 {
     //     return cardId; // TODO
     // }
 
-    function RandomMatch(uint256 cardId) public returns (uint256 match_id) {
+    function RandomMatch(uint256 cardId) public returns (uint match_id) {
         Card memory card = cards[cardId];
         require(card.owner == msg.sender, "Not your card!");
         if (Awaiting_match.userid == address(0)) {
             Awaiting_match.userid = msg.sender;
             Awaiting_match.cardid = cardId;
             match_id = MatchRecords.length;
+            return match_id;
         }
         else {
             address winner;
@@ -108,7 +109,7 @@ contract CardGame is ERC721 {
             MatchRecords.push(cur_match);
             Awaiting_match.userid = address(0);
             Awaiting_match.cardid = 0;
-            // return match_id;
+            return match_id;
         }
     }
     

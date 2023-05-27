@@ -2,7 +2,8 @@ App = {
   web3Provider: null,
   contracts: {},
   names: new Array(),
-  url: 'http://127.0.0.1:7545',
+  // url: 'https://eth-sepolia.g.alchemy.com/v2/Q8u8uCRlRrG9yuQrvUBlRTKAga8SYfBr',
+  url: "http://127.0.0.1:7545",
   admin:null,
   currentAccount:null,
 
@@ -104,7 +105,6 @@ App = {
   },
 
   showNotificationWinner: function (addr) {
-    // var notificationText = App.eventPhases[phase];
     $('#current-winner-text').text(addr);
   },
 
@@ -151,10 +151,9 @@ App = {
       cardgameInstance = instance;
       return cardgameInstance.RandomMatch(cardid);
     }).then(function(res){
-      console.log(res);
-      App.showNotificationMatchID(res.logs[0].event);
-      console.log(res);
-      alert("Match ID : " + res);
+      console.log(JSON.stringify(res));
+      App.showNotificationMatchID(JSON.stringify(res));
+      alert("Match ID : " + JSON.stringify(res));
     }).catch(function(err){
       alert(err.message);
       console.log(err.message);

@@ -1,3 +1,4 @@
 ballot-contract/node_modules/
 ballot-app/node_modules
 ballot-contract/build/
+ballot-contract/.env
