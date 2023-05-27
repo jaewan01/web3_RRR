@@ -6,19 +6,19 @@ App = {
   admin:null,
   currentAccount:null,
 
-  eventPhases: {
-    "VoteInit": { 'id': 0, 'text': "Voting Not Started" },
-    "RegsStarted": { 'id': 1, 'text': "Registration Started" },
-    "VoteStarted": { 'id': 2, 'text': "Voting Started" },
-    "VoteDone": { 'id': 3, 'text': "Voting Ended" }
-  },
+  // eventPhases: {
+  //   "VoteInit": { 'id': 0, 'text': "Voting Not Started" },
+  //   "RegsStarted": { 'id': 1, 'text': "Registration Started" },
+  //   "VoteStarted": { 'id': 2, 'text': "Voting Started" },
+  //   "VoteDone": { 'id': 3, 'text': "Voting Ended" }
+  // },
 
-  votingPhases: {
-    "0": "Voting Not Started",
-    "1": "Registration Started",
-    "2": "Voting Started",
-    "3": "Voting Ended"
-  },
+  // votingPhases: {
+  //   "0": "Voting Not Started",
+  //   "1": "Registration Started",
+  //   "2": "Voting Started",
+  //   "3": "Voting Ended"
+  // },
 
   init: function() {
     return App.initWeb3();
@@ -55,7 +55,7 @@ App = {
 
       $('#current-winner-text').text('no winner');
       $('#match-id-text').text('no match');
-  
+
       App.getAdmin();
   
       return App.bindEvents();
@@ -92,25 +92,24 @@ App = {
       // card mint 하게 만들었음 ;; 아니잖아 안선호
       return cardgameInstance.mintCard(cardid);
     }).then(function(result, err){
-        if(result){
-            if(parseInt(result.receipt.status) == 1)
-            alert(addr + " minting done successfully")
+      if(result){   
+        if(parseInt(result.receipt.status) == 1)
+            alert(cardid+" minting done successfully")
             else
-            alert(addr + " minting not done successfully due to revert")
+            alert(cardid+" minting not done successfully due to revert")
         } else {
-            alert(addr + " minting failed")
+            alert(cardid+" minting failed")
         }   
     });
   },
 
-  showNotificationWinner: function (phase) {
-    var notificationText = App.eventPhases[phase];
-    $('#current-winner-text').text(notificationText.text);
+  showNotificationWinner: function (addr) {
+    // var notificationText = App.eventPhases[phase];
+    $('#current-winner-text').text(addr);
   },
 
-  showNotificationMatchID: function (phase) {
-    var notificationText = App.eventPhases[phase];
-    $('#match-id-text').text(notificationText.text);
+  showNotificationMatchID: function (matchID) {
+    $('#match-id-text').text(matchID);
   },
 
   handleRegister: function(addr){
@@ -118,15 +117,15 @@ App = {
     App.contracts.cardgame.deployed().then(function(instance) {
       cardgameInstance = instance;
       // register 대신 register player 넣었음
-      return cardgameInstance.register_player(addr);
-    }).then(function(result, err){
+      return cardgameInstance.register_player();
+    }).then(function(result,err){
         if(result){
             if(parseInt(result.receipt.status) == 1)
-            alert(addr + " registration done successfully")
+            alert(" registration done successfully");
             else
-            alert(addr + " registration not done successfully due to revert")
+            alert(" registration not done successfully due to revert");
         } else {
-            alert(addr + " registration failed")
+            alert(" registration failed");
         }   
     });
 },
@@ -137,10 +136,10 @@ App = {
       cardgameInstance = instance;
       return cardgameInstance.view_result(matchid);
     }).then(function(res){
-      App.showNotificationMatchID(matchid)
-      App.showNotificationWinner(res.logs[0].event)
       console.log(res);
-      alert(App.names[res] + "  is the winner ! :)");
+      App.showNotificationMatchID(matchid)
+      App.showNotificationWinner(res)
+      alert(res + "  is the winner ! :)");
     }).catch(function(err){
       console.log(err.message);
     })
@@ -152,10 +151,12 @@ App = {
       cardgameInstance = instance;
       return cardgameInstance.RandomMatch(cardid);
     }).then(function(res){
-      App.showNotificationMatchID(res.logs[0].event)
       console.log(res);
-      alert("Match ID : " + App.names[res]);
+      App.showNotificationMatchID(res.logs[0].event);
+      console.log(res);
+      alert("Match ID : " + res);
     }).catch(function(err){
+      alert(err.message);
       console.log(err.message);
     })
   },
