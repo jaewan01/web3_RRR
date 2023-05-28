@@ -149,7 +149,8 @@ App = {
     var cardgameInstance;
     App.contracts.cardgame.deployed().then(function(instance) {
       cardgameInstance = instance;
-      return cardgameInstance.RandomMatch(cardid);
+      cardgameInstance.RandomMatch(cardid);
+      return cardgameInstance.CurrentMatchID();
     }).then(function(res){
       console.log(JSON.stringify(res));
       App.showNotificationMatchID(JSON.stringify(res));

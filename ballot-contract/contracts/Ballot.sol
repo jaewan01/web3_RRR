@@ -112,7 +112,13 @@ contract CardGame is ERC721 {
             return match_id;
         }
     }
-    
+
+    function CurrentMatchID() public view returns (uint match_id)
+    {
+        uint match_id = MatchRecords.length;
+        return match_id;
+
+    }    
 
     function TestMatch(address player1Id, address player2Id, uint256 card1Id, uint256 card2Id) public view onlyAdmin returns (address) {
 
